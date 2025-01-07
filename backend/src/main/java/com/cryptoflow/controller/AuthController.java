@@ -1,14 +1,17 @@
 package com.cryptoflow.controller;
 
 import com.cryptoflow.config.JwtProvider;
+import com.cryptoflow.domain.VerificationType;
+import com.cryptoflow.entity.ForgotPasswordToken;
 import com.cryptoflow.entity.TwoFactorOTP;
 import com.cryptoflow.entity.User;
+import com.cryptoflow.entity.VerificationCode;
 import com.cryptoflow.repository.UserRepository;
+import com.cryptoflow.request.ForgotPasswordTokenRequest;
+import com.cryptoflow.request.ResetPasswordRequest;
+import com.cryptoflow.response.ApiResponse;
 import com.cryptoflow.response.AuthResponse;
-import com.cryptoflow.service.CustomUserDetailService;
-import com.cryptoflow.service.EmailService;
-import com.cryptoflow.service.TwoFactorOTPService;
-import com.cryptoflow.service.UserService;
+import com.cryptoflow.service.*;
 import com.cryptoflow.utils.OTPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -39,6 +44,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ForgotPasswordService forgotPasswordService;
 
     @Autowired
     private EmailService emailService;
@@ -132,6 +140,57 @@ public class AuthController {
         } else {
             throw new Exception("Invalid Otp");
         }
+    }
+
+    @PostMapping("/api/users/reset-password/send-otp")
+    public ResponseEntity<AuthResponse> sendForgotPasswordOtp(
+            @RequestBody ForgotPasswordTokenRequest request
+    ) throws Exception {
+
+        User user = userService.findByEmail(request.getSendTo());
+        String otp = OTPUtils.generateOTP();
+        UUID uuid = UUID.randomUUID();
+        String id = uuid.toString();
+
+        ForgotPasswordToken token = forgotPasswordService.findByUser(user.getId());
+
+        if(token == null) {
+            token = forgotPasswordService.createToken(user, id, otp, request.getVerificationType(), request.getSendTo());
+        }
+
+        if(request.getVerificationType().equals(VerificationType.EMAIL)) {
+            emailService.sendVerificationOtpMail(user.getEmail(), token.getOtp());
+        }
+
+        AuthResponse res = new AuthResponse();
+        res.setSession(token.getId());
+        res.setStatus(true);
+        res.setMessage("Password reset otp sent successfully");
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @PatchMapping("/api/users/reset-password/verify-otp")
+    public ResponseEntity<ApiResponse> resetPassword(
+            @RequestParam String id,
+            @RequestBody ResetPasswordRequest req,
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception {
+
+        ForgotPasswordToken forgotPasswordToken = forgotPasswordService.findById(id);
+
+        boolean isVerified = forgotPasswordToken.getOtp().equals(req.getOtp());
+
+        if(isVerified) {
+            userService.updatePassword(forgotPasswordToken.getUser(), req.getPassword());
+
+            ApiResponse res = new ApiResponse();
+            res.setMessage("Password updated Successfully");
+
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+
+        throw new Exception("Invalid Otp");
     }
 
     private Authentication authenticate(String email, String password) {

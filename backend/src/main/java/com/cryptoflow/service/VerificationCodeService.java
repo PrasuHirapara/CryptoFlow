@@ -4,7 +4,6 @@ import com.cryptoflow.domain.VerificationType;
 import com.cryptoflow.entity.User;
 import com.cryptoflow.entity.VerificationCode;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.RestController;
 
 @Repository
 public interface VerificationCodeService {
