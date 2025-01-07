@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class ForgotPasswordImpl implements ForgotPasswordService{
+public class ForgotPasswordImpl implements ForgotPasswordService {
 
     @Autowired
     private ForgotPasswordRepository forgotPasswordRepository;
