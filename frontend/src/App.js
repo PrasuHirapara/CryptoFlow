@@ -2,7 +2,7 @@ function App() {
   return (
     <>
       <nav>
-        <h1>Hello World</h1>
+        <h1>Hello World </h1>
       </nav>
     </>
   );
