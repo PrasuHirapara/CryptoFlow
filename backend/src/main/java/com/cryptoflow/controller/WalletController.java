@@ -49,19 +49,18 @@ public class WalletController {
         return new ResponseEntity<>(walletOfSender, HttpStatus.ACCEPTED);
     }
 
-    @PutMapping("/order/{orderId}/pay")
-    public ResponseEntity<Wallet> payOrderPayment(
-            @RequestHeader("Authorization") String jwt,
-            @PathVariable Long orderId
-    ) throws Exception {
-
-        User user = userService.findByJWT(jwt);
-
-//        create orderService api first, wallet service ends and transaction of money api is rest
-        Order order = orderService.getOrderById(orderId);
-
-        Wallet wallet = walletService.payOrderPayment(order, user);
-
-        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
-    }
+//    @PutMapping("/order/{orderId}/pay")
+//    public ResponseEntity<Wallet> payOrderPayment(
+//            @RequestHeader("Authorization") String jwt,
+//            @PathVariable Long orderId
+//    ) throws Exception {
+//
+//        User user = userService.findByJWT(jwt);
+//
+//        Order order = orderService.getOrderById(orderId);
+//
+//        Wallet wallet = walletService.payOrderPayment(order, user);
+//
+//        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
+//    }
 }
