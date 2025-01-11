@@ -5,7 +5,7 @@ function App() {
     <>
       <nav>
         <h1>Hello World </h1>
-        <Button>Hello</Button>
+        {/* <Button>Hello</Button> */}
       </nav>
     </>
   );
